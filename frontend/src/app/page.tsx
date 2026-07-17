@@ -5,7 +5,7 @@ const Homepage = () => {
     <div className="">
       <div className="text-3xl font-bold text-center py-4">Homepage</div>
       <div>
-        <h1 className="flex justify-center text-3xl font-bold text-gray-500">Wel Come to Z School System</h1>
+        <h1 className="flex justify-center text-3xl font-bold text-gray-500">WelCome to Z School System</h1>
       </div>
       <div className="flex justify-center gap-4 p-4 font-bold">
         <Link href={"/admin"}>Admin DashBoard</Link>
