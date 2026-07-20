@@ -1,0 +1,13 @@
+model Subject {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+
+  teachers    TeacherSubject[]
+  lessons     Lesson[]
+  exams       Exam[]
+  assignments Assignment[]
+  results     Result[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

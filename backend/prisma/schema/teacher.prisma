@@ -1,0 +1,19 @@
+model Teacher {
+  id          Int              @id @default(autoincrement())
+  teacherId   String           @unique
+  name        String
+  email       String           @unique
+  photo       String?
+  phone       String?
+  address     String?
+
+  subjects    TeacherSubject[]
+  classes     TeacherClass[]
+  lessons     Lesson[]
+  exams       Exam[]
+  assignments Assignment[]
+  results     Result[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

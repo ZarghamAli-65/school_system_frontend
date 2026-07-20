@@ -1,0 +1,12 @@
+model Announcement {
+  id         Int @id @default(autoincrement())
+  title      String
+
+  classId    Int
+  class      Class @relation(fields: [classId], references: [id])
+
+  date       DateTime
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
