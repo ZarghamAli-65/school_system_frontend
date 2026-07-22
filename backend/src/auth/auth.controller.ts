@@ -7,11 +7,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  login(
-    @Body() loginDto: LoginDto,
-    @Headers() headers: any,
-  ) {
-
+  login(@Body() loginDto: LoginDto, @Headers() headers: any) {
     return this.authService.login(loginDto);
   }
 }

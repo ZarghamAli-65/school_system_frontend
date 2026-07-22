@@ -1,0 +1,11 @@
+.env
+  ↓
+ConfigModule
+  ↓
+ConfigService
+  ↓
+JwtModule.registerAsync()
+  ↓
+AuthService
+  ↓
+JWT token
