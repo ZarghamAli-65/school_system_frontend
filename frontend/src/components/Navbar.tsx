@@ -1,5 +1,7 @@
 import React from "react";
 import Image from "next/image";
+import LogoutButton from "./auth/LogoutButton";
+import { NotificationProvider } from "./NotificationProvider";
 const Navbar = () => {
   return (
     <div className="flex items-center justify-between p-4">
@@ -22,6 +24,14 @@ const Navbar = () => {
           <span className="text-xs leading-3 font-medium">Zargham Ali</span>
           
         </div>
+        <NotificationProvider>
+
+        <div className="flex flex-col">
+          <span className="text-xs leading-3 font-medium"><LogoutButton /></span>
+          
+        </div>
+        </NotificationProvider>
+
         
       </div>
     </div>

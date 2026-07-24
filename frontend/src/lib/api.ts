@@ -1,6 +1,6 @@
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  console.log(API_URL);
+  // console.log(API_URL);
 
 export interface LoginRequest {
   email: string;
@@ -37,4 +37,17 @@ export async function login(
   }
 
   return data;
+}
+
+
+//logout funtion
+export async function logout() {
+  // Clear local storage
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+  // Clear cookies
+  document.cookie = "accessToken=; path=/; max-age=0";
+  document.cookie = "role=; path=/; max-age=0";
+  // Redirect to sign‑in (use router in a client component, or window.location)
+  window.location.href = "/sign-in";
 }

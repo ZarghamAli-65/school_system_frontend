@@ -1,191 +1,131 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { login } from "@/lib/api";
+import { useNotification } from "@/components/NotificationProvider";
 
-interface AuthFormProps {
-  isSignIn: boolean;
-  onSubmit?: (data: any) => void;
-}
-
-export default function AuthForm({ isSignIn, onSubmit }: AuthFormProps) {
+export default function SignInForm() {
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    universityId: "",
-    universityCard: null as File | null,
-    password: "",
-  });
-
-  const [preview, setPreview] = useState<string | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-    }
-
-    setFormData((prev) => ({ ...prev, universityCard: file }));
-  };
+  const { showNotification } = useNotification();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!isSignIn) {
-      if (onSubmit) onSubmit(formData);
-      return;
-    }
+    setLoading(true);
 
     try {
-      const result = await login({
-        email: formData.email,
-        password: formData.password,
-      });
+      const result = await login({ email, password });
 
       localStorage.setItem("accessToken", result.accessToken);
       localStorage.setItem("user", JSON.stringify(result.user));
       document.cookie = `accessToken=${result.accessToken}; path=/`;
       document.cookie = `role=${result.user.role}; path=/`;
 
-      switch (result.user.role) {
-        case "ADMIN":
-          router.push("/admin");
-          break;
+      showNotification(`Welcome ${result.user.name}!`, "success");
 
-        case "TEACHER":
-          router.push("/teacher");
-          break;
-
-        case "STUDENT":
-          router.push("/student");
-          break;
-
-        case "PARENT":
-          router.push("/parent");
-          break;
-
-        default:
-          router.push("/");
-      }
+      setTimeout(() => {
+        switch (result.user.role) {
+          case "ADMIN":
+            router.push("/admin");
+            break;
+          case "TEACHER":
+            router.push("/teacher");
+            break;
+          case "STUDENT":
+            router.push("/student");
+            break;
+          case "PARENT":
+            router.push("/parent");
+            break;
+          default:
+            router.push("/");
+        }
+      }, 1500);
     } catch (error) {
       console.error(error);
-      alert("Invalid email or password");
+      showNotification("Invalid email or password", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fields = isSignIn
-    ? (["email", "password"] as const)
-    : (["fullName", "email", "universityId", "universityCard"] as const);
-
-  const fieldLabels: Record<string, string> = {
-    fullName: "Full Name",
-    email: "Email",
-    universityId: "University ID",
-    universityCard: "University ID Card",
-    password: "Password",
-  };
-
-  const fieldTypes: Record<string, string> = {
-    fullName: "text",
-    email: "email",
-    universityId: "text",
-    universityCard: "file",
-    password: "password",
-  };
-
   return (
-    <main>
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl border border-gray-200 flex flex-col gap-6">
-        <h1 className="text-3xl font-bold justify-center text-center text-gray-900">
-          <span className="text-purple-400">
-            {isSignIn ? "Welcome back" : "Create Account"}
-          </span>{" "}
-          <br />
-          Z-School Portal
-        </h1>
+    <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl border border-gray-200 flex flex-col gap-6">
+      <h1 className="text-3xl font-bold text-center text-gray-900">
+        <span className="text-purple-400">Welcome back</span>
+        <br />
+        Z-School Portal
+      </h1>
 
-        <p className="text-sm leading-6 text-gray-500 flex flex-wrap text-center justify-center">
-          {isSignIn
-            ? "Access to vast collection of resources, and stay updated"
-            : "Please complete all fields and upload a valid I.D to gain access to the portal"}
-        </p>
+      <p className="text-sm leading-6 text-gray-500 text-center">
+        Access to vast collection of resources, and stay updated
+      </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6 w-full">
-          {fields.map((field) => (
-            <div key={field} className="space-y-2">
-              <label
-                htmlFor={field}
-                className="block text-sm font-semibold text-gray-700"
-              >
-                {fieldLabels[field]}
-              </label>
+      <form onSubmit={handleSubmit} className="space-y-6 w-full">
+        <div className="space-y-2">
+          <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-200"
+          />
+        </div>
 
-              {field === "universityCard" ? (
-                <div className="flex flex-col items-start gap-2">
-                  <input
-                    type="file"
-                    id={field}
-                    name={field}
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 px-4 py-6 text-gray-600 cursor-pointer transition hover:border-purple-500 hover:bg-purple-100 file:mr-4 file:rounded-lg file:border-0 file:bg-purple-300 file:px-4 file:py-2 file:text-white file:cursor-pointer hover:file:bg-purple-400"
-                  />
-
-                  {preview && (
-                    <img
-                      src={preview}
-                      alt="Upload preview"
-                      className="w-36 h-36 rounded-xl object-cover border-4 border-yellow-300 shadow-md"
-                    />
-                  )}
-                </div>
+        <div className="space-y-2">
+          <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 pr-12 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-200"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? (
+                <span className="text-xl">📖</span>
               ) : (
-                <input
-                  type={fieldTypes[field]}
-                  id={field}
-                  name={field}
-                  value={formData[field as keyof typeof formData] as string}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-200"
-                />
+                <span className="text-xl">📕</span>
               )}
-            </div>
-          ))}
+            </button>
+          </div>
+        </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-purple-400 py-3 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-purple-500 hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
-          >
-            {isSignIn ? "Sign In" : "Sign Up"}
-          </button>
-        </form>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-xl bg-purple-400 py-3 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-purple-500 hover:-translate-y-0.5 hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {loading ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
 
-        <p className="text-center justify-center text-sm text-gray-500">
-          {isSignIn ? "New to Z-School Portal? " : "Already have an account? "}
-
-          <Link
-            href={isSignIn ? "/sign-up" : "/sign-in"}
-            className="flex items-center justify-center text-center gap-4 text-gray-500 py-2 md:px-2 rounded-md hover:bg-sky-300"
-          >
-            {isSignIn ? "Create an account" : "Sign In"}
-          </Link>
-        </p>
-      </div>
-    </main>
+      <p className="text-center text-sm text-gray-500">
+        Forget Your Password ?{" "}
+        <Link
+          href="/sign-up"
+          className="inline-flex items-center justify-center gap-4 text-gray-500 py-2 md:px-2 rounded-md hover:bg-sky-300"
+        >
+          Contact Support
+        </Link>
+      </p>
+    </div>
   );
 }
